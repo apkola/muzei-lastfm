@@ -22,8 +22,42 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     private static final String TAG = "Last.fm";
     private static final String SOURCE_NAME = "LastFmArtSource";
 
+    private static final String PREF_API_USERNAME = "apiUsername";
+    private static final String PREF_API_METHOD = "apiMethod";
+    private static final String PREF_API_PERIOD = "apiPeriod";
     public static final String PREF_ROTATE_INTERVAL_MIN = "rotate_interval_min";
     public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 3; //3 hours
+
+    public enum ApiMethod {
+        TOP_ALBUMS("topAlbums");
+
+        private String mName;
+        ApiMethod(String name) {
+            mName = name;
+        }
+        @Override
+        public String toString() {
+            return mName;
+        }
+    }
+
+    public enum ApiPeriod {
+        SEVEN_DAYS("7days"),
+        ONE_MONTH("1month"),
+        THREE_MONTHS("3month"),
+        SIX_MONTHS("6month"),
+        TWELVE_MONTHS("12month"),
+        OVERALL("overall");
+
+        private String mName;
+        ApiPeriod(String name) {
+            mName = name;
+        }
+        @Override
+        public String toString() {
+            return mName;
+        }
+    }
 
     public LastFmArtSource() {
         super(SOURCE_NAME);
@@ -65,9 +99,15 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                 })
                 .build();
 
+        String username = getUsernameOrMine();
+        String apiMethod = getApiMethod(this).toString();
+        String apiPeriod = getApiPeriod(this).toString();
+
+        Log.i(TAG, String.format("Trying update %s for last %s for %s", apiMethod, apiPeriod, username));
+
         LastFmService service = restAdapter.create(LastFmService.class);
         LastFmService.AlbumsResponse response =
-                service.getTopAlbums(Config.USER, Config.PERIOD, Config.LIMIT);
+                service.getTopAlbums(username, apiPeriod, Config.LIMIT);
 
         if (response == null || response.topalbums == null || response.topalbums.album == null) {
             throw new RetryException();
@@ -114,7 +154,45 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         }
     }
 
+    private String getUsernameOrMine() {
+        String username = getUsername(this);
+        if (TextUtils.isEmpty(username)) {
+            return Config.USERNAME;
+        }
+        return username;
+    }
+
     static SharedPreferences getSharedPreferences(Context context) {
         return getSharedPreferences(context, SOURCE_NAME);
+    }
+
+    public static String getUsername(Context context) {
+        return getSharedPreferences(context).getString(PREF_API_USERNAME, "");
+    }
+
+    public static void setUsername(Context context, String username) {
+        getSharedPreferences(context).edit()
+                .putString(PREF_API_USERNAME, username)
+                .apply();
+    }
+
+    public static void setApiMethod(Context context, ApiMethod apiMethod) {
+        getSharedPreferences(context).edit()
+                .putInt(PREF_API_METHOD, apiMethod.ordinal())
+                .apply();
+    }
+
+    public static ApiMethod getApiMethod(Context context) {
+        return ApiMethod.values()[getSharedPreferences(context).getInt(PREF_API_METHOD, 0)];
+    }
+
+    public static void setApiPeriod(Context context, ApiPeriod apiPeriod) {
+        getSharedPreferences(context).edit()
+                .putInt(PREF_API_PERIOD, apiPeriod.ordinal())
+                .apply();
+    }
+
+    public static ApiPeriod getApiPeriod(Context context) {
+        return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 0)];
     }
 }

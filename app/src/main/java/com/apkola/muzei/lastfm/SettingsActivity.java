@@ -2,12 +2,20 @@ package com.apkola.muzei.lastfm;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 public class SettingsActivity extends Activity {
 
+    private static final String TAG = "SettingsActivity";
     private static SparseIntArray sRotateMenuIdsByMin = new SparseIntArray();
     private static SparseIntArray sRotateMinsByMenuId = new SparseIntArray();
 
@@ -23,10 +31,63 @@ public class SettingsActivity extends Activity {
         }
     }
 
+    private TextView mUsername;
+    private Spinner mApiMethod;
+    private Spinner mApiPeriod;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
+
+        mUsername = (TextView)findViewById(R.id.lastfm_username);
+        mApiMethod = (Spinner)findViewById(R.id.lastfm_api_method);
+        mApiPeriod= (Spinner)findViewById(R.id.lastfm_api_period);
+
+        setupView();
+    }
+
+    private void setupView() {
+        mUsername.setText(LastFmArtSource.getUsername(this));
+        mUsername.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String username = String.valueOf(s);
+                LastFmArtSource.setUsername(SettingsActivity.this, username);
+            }
+        });
+
+        mApiMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                LastFmArtSource.setApiMethod(SettingsActivity.this,
+                        LastFmArtSource.ApiMethod.values()[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        mApiPeriod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                LastFmArtSource.setApiPeriod(SettingsActivity.this,
+                        LastFmArtSource.ApiPeriod.values()[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
     @Override
