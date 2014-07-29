@@ -28,6 +28,9 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     public static final String PREF_ROTATE_INTERVAL_MIN = "rotate_interval_min";
     public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 3; //3 hours
 
+    public static final String ACTION_PUBLISH_NEXT_LAST_FM_ITEM =
+            "com.apkola.muzei.lastfm.action.PUBLISH_NEXT_LAST_FM_ITEM";
+
     public enum ApiMethod {
         TOP_ALBUMS("topAlbums");
 
@@ -42,7 +45,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     public enum ApiPeriod {
-        SEVEN_DAYS("7days"),
+        SEVEN_DAYS("7day"),
         ONE_MONTH("1month"),
         THREE_MONTHS("3month"),
         SIX_MONTHS("6month"),
@@ -70,6 +73,21 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     @Override
+    protected void onHandleIntent(Intent intent) {
+        if (intent == null) {
+            super.onHandleIntent(intent);
+            return;
+        }
+
+        String action = intent.getAction();
+        if (ACTION_PUBLISH_NEXT_LAST_FM_ITEM.equals(action)) {
+            onUpdate(UPDATE_REASON_USER_NEXT);
+            return;
+        }
+        super.onHandleIntent(intent);
+    }
+
+    @Override
     protected void onTryUpdate(int reason) throws RetryException {
         String currentToken = (getCurrentArtwork() != null) ? getCurrentArtwork().getToken() : null;
 
@@ -81,6 +99,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         request.addQueryParam("api_key", Config.API_KEY);
                     }
                 })
+//                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setErrorHandler(new ErrorHandler() {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {

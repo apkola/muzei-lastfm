@@ -1,10 +1,8 @@
 package com.apkola.muzei.lastfm;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,6 +32,7 @@ public class SettingsActivity extends Activity {
     private TextView mUsername;
     private Spinner mApiMethod;
     private Spinner mApiPeriod;
+    private View mButtonSave;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,27 +42,9 @@ public class SettingsActivity extends Activity {
         mUsername = (TextView)findViewById(R.id.lastfm_username);
         mApiMethod = (Spinner)findViewById(R.id.lastfm_api_method);
         mApiPeriod= (Spinner)findViewById(R.id.lastfm_api_period);
+        mButtonSave = findViewById(R.id.save_settings_button);
 
-        setupView();
-    }
-
-    private void setupView() {
         mUsername.setText(LastFmArtSource.getUsername(this));
-        mUsername.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String username = String.valueOf(s);
-                LastFmArtSource.setUsername(SettingsActivity.this, username);
-            }
-        });
 
         mApiMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -86,6 +67,18 @@ public class SettingsActivity extends Activity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        CheatSheet.setup(mButtonSave);
+        mButtonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LastFmArtSource.setUsername(SettingsActivity.this,
+                        String.valueOf(mUsername.getText()));
+                startService(new Intent(SettingsActivity.this, LastFmArtSource.class)
+                        .setAction(LastFmArtSource.ACTION_PUBLISH_NEXT_LAST_FM_ITEM));
+                finish();
             }
         });
     }

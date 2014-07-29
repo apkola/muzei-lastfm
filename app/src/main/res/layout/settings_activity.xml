@@ -33,9 +33,21 @@
             android:id="@+id/lastfm_api_period"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="60dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:entries="@array/lastfm_api_periods"
             />
+
+
+        <ImageButton android:id="@+id/save_settings_button"
+            android:background="@drawable/white_circle_button"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="@string/action_save_settings"
+            android:src="@drawable/ic_save_settings" />
+
     </LinearLayout>
 </FrameLayout>
