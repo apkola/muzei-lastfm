@@ -1,0 +1,7 @@
+<resources>
+    <color name="settings_empty_state_dark">#394a43</color>
+    <color name="settings_empty_state_light">#639680</color>
+
+    <color name="settings_window_background">#111</color>
+    <color name="settings_inset_shade">#a111</color>
+</resources>

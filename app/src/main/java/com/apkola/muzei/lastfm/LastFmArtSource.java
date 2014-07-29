@@ -1,6 +1,8 @@
 package com.apkola.muzei.lastfm;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,7 +22,8 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     private static final String TAG = "Last.fm";
     private static final String SOURCE_NAME = "LastFmArtSource";
 
-    private static final int ROTATE_TIME_MILLIS = 3 * 60 * 60 * 1000; // rotate every 3 hours
+    public static final String PREF_ROTATE_INTERVAL_MIN = "rotate_interval_min";
+    public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 3; //3 hours
 
     public LastFmArtSource() {
         super(SOURCE_NAME);
@@ -56,7 +59,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                                 || (500 <= statusCode && statusCode < 600)) {
                             return new RemoteMuzeiArtSource.RetryException();
                         }
-                        scheduleUpdate(System.currentTimeMillis() + ROTATE_TIME_MILLIS);
+                        scheduleNext();
                         return retrofitError;
                     }
                 })
@@ -74,7 +77,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
 
         if (albums.size() == 0) {
             Log.w(TAG, "No albums returned from API.");
-            scheduleUpdate(System.currentTimeMillis() + ROTATE_TIME_MILLIS);
+            scheduleNext();
             return;
         }
 
@@ -100,6 +103,18 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         Uri.parse(album.url)))
                 .build());
 
-        scheduleUpdate(System.currentTimeMillis() + ROTATE_TIME_MILLIS);
+        scheduleNext();
+    }
+
+    private void scheduleNext() {
+        int rotateIntervalMinutes = getSharedPreferences().getInt(PREF_ROTATE_INTERVAL_MIN,
+                DEFAULT_ROTATE_INTERVAL_MIN);
+        if (rotateIntervalMinutes > 0) {
+            scheduleUpdate(System.currentTimeMillis() + rotateIntervalMinutes * 60 * 1000);
+        }
+    }
+
+    static SharedPreferences getSharedPreferences(Context context) {
+        return getSharedPreferences(context, SOURCE_NAME);
     }
 }

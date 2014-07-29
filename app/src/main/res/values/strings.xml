@@ -2,4 +2,12 @@
     <string name="app_name">Muzei Last.fm</string>
     <string name="source_name">Last.fm</string>
     <string name="source_description">Top albums</string>
+    <string name="title_settings">Last.fm Settings</string>
+    <string name="action_rotate_interval">Change interval</string>
+    <string name="action_rotate_interval_none">Don\'t change wallpaper</string>
+    <string name="action_rotate_interval_1h">Every hour</string>
+    <string name="action_rotate_interval_3h">Every 3 hours</string>
+    <string name="action_rotate_interval_6h">Every 6 hours</string>
+    <string name="action_rotate_interval_24h">Every 24 hours</string>
+    <string name="action_rotate_interval_72h">Every 3 days</string>
 </resources>

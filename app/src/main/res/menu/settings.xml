@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_rotate_interval"
+        android:title="@string/action_rotate_interval"
+        android:icon="@drawable/ic_action_rotate_interval"
+        android:showAsAction="ifRoom">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/action_rotate_interval_none"
+                    android:title="@string/action_rotate_interval_none" />
+                <item
+                    android:id="@+id/action_rotate_interval_1h"
+                    android:title="@string/action_rotate_interval_1h" />
+                <item
+                    android:id="@+id/action_rotate_interval_3h"
+                    android:title="@string/action_rotate_interval_3h" />
+                <item
+                    android:id="@+id/action_rotate_interval_6h"
+                    android:title="@string/action_rotate_interval_6h" />
+                <item
+                    android:id="@+id/action_rotate_interval_24h"
+                    android:title="@string/action_rotate_interval_24h" />
+                <item
+                    android:id="@+id/action_rotate_interval_72h"
+                    android:title="@string/action_rotate_interval_72h" />
+            </group>
+        </menu>
+    </item>
+</menu>
