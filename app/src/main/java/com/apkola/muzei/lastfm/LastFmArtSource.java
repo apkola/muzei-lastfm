@@ -125,8 +125,13 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         Log.i(TAG, String.format("Trying update %s for last %s for %s", apiMethod, apiPeriod, username));
 
         LastFmService service = restAdapter.create(LastFmService.class);
-        LastFmService.AlbumsResponse response =
-                service.getTopAlbums(username, apiPeriod, Config.LIMIT);
+        LastFmService.AlbumsResponse response;
+        try {
+            response = service.getTopAlbums(username, apiPeriod, Config.LIMIT);
+        } catch (RetrofitError e) {
+            Log.e(TAG, "Failed: " + e.getMessage());
+            throw new RetryException(e);
+        }
 
         if (response == null || response.topalbums == null || response.topalbums.album == null) {
             throw new RetryException();
