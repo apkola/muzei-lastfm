@@ -10,6 +10,7 @@ import android.util.Log;
 import com.google.android.apps.muzei.api.Artwork;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -32,7 +33,9 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
             "com.apkola.muzei.lastfm.action.PUBLISH_NEXT_LAST_FM_ITEM";
 
     public enum ApiMethod {
-        TOP_ALBUMS("topAlbums");
+        TOP_ALBUMS("Top albums"),
+        TOP_ARTISTS("Top artists"),
+        TOP_TRACKS("Top Tracks");
 
         private String mName;
         ApiMethod(String name) {
@@ -70,6 +73,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     public void onCreate() {
         super.onCreate();
         setUserCommands(BUILTIN_COMMAND_ID_NEXT_ARTWORK);
+        setDescription(getApiMethod(this).toString());
     }
 
     @Override
@@ -89,6 +93,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
 
     @Override
     protected void onTryUpdate(int reason) throws RetryException {
+        setDescription(getApiMethod(this).toString());
         String currentToken = (getCurrentArtwork() != null) ? getCurrentArtwork().getToken() : null;
 
         RestAdapter restAdapter = new RestAdapter.Builder()
@@ -99,7 +104,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         request.addQueryParam("api_key", Config.API_KEY);
                     }
                 })
-//                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setErrorHandler(new ErrorHandler() {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {
@@ -119,52 +124,69 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                 .build();
 
         String username = getUsernameOrMine();
-        String apiMethod = getApiMethod(this).toString();
-        String apiPeriod = getApiPeriod(this).toString();
+        ApiMethod apiMethod = getApiMethod(this);
+        ApiPeriod apiPeriod = getApiPeriod(this);
 
         Log.i(TAG, String.format("Trying update %s for last %s for %s", apiMethod, apiPeriod, username));
 
         LastFmService service = restAdapter.create(LastFmService.class);
-        LastFmService.AlbumsResponse response;
+        List<? extends LastFmService.EntityWithImage> items = null;
         try {
-            response = service.getTopAlbums(username, apiPeriod, Config.LIMIT);
+            switch (apiMethod) {
+                case TOP_ALBUMS:
+                    LastFmService.AlbumsResponse albumsResponse =
+                            service.getTopAlbums(username, apiPeriod.toString(), Config.LIMIT);
+                    if (albumsResponse == null || albumsResponse.topalbums == null || albumsResponse.topalbums.album == null) {
+                        throw new RetryException();
+                    }
+                    items = albumsResponse.topalbums.album;
+                    break;
+
+                case TOP_ARTISTS:
+                    LastFmService.ArtistsResponse artistsResponse =
+                            service.getTopArtists(username, apiPeriod.toString(), Config.LIMIT);
+                    if (artistsResponse == null || artistsResponse.topartists == null || artistsResponse.topartists.artist == null) {
+                        throw new RetryException();
+                    }
+                    items = artistsResponse.topartists.artist;
+                    break;
+
+                case TOP_TRACKS:
+                    items = new ArrayList<LastFmService.EntityWithImage>();
+                    break;
+            }
         } catch (RetrofitError e) {
             Log.e(TAG, "Failed: " + e.getMessage());
             throw new RetryException(e);
         }
 
-        if (response == null || response.topalbums == null || response.topalbums.album == null) {
-            throw new RetryException();
-        }
-
-        List<LastFmService.Album> albums = response.topalbums.album;
-
-        if (albums.size() == 0) {
+        if (items.size() == 0) {
             Log.w(TAG, "No albums returned from API.");
             scheduleNext();
             return;
         }
 
         Random random = new Random();
-        LastFmService.Album album;
+        LastFmService.EntityWithImage item;
         String token;
+
         while (true) {
-            album = albums.get(random.nextInt(albums.size()));
-            token = album.mbid;
-            if (albums.size() <= 1 ||
+            item = items.get(random.nextInt(items.size()));
+            token = item.mbid;
+            if (items.size() <= 1 ||
                     (!TextUtils.equals(token, currentToken)
-                            && !TextUtils.isEmpty(album.getImageUrl()))) {
+                            && !TextUtils.isEmpty(item.getImageUrl()))) {
                 break;
             }
         }
 
         publishArtwork(new Artwork.Builder()
-                .title(album.name)
-                .byline(album.artist.name)
-                .imageUri(Uri.parse(album.getImageUrl()))
+                .title(item.name)
+                .byline(item.getByLine())
+                .imageUri(Uri.parse(item.getImageUrl()))
                 .token(token)
                 .viewIntent(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(album.url)))
+                        Uri.parse(item.url)))
                 .build());
 
         scheduleNext();

@@ -46,6 +46,7 @@ public class SettingsActivity extends Activity {
 
         mUsername.setText(LastFmArtSource.getUsername(this));
 
+        mApiMethod.setSelection(LastFmArtSource.getApiMethod(this).ordinal());
         mApiMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -58,6 +59,7 @@ public class SettingsActivity extends Activity {
             }
         });
 
+        mApiPeriod.setSelection(LastFmArtSource.getApiPeriod(this).ordinal());
         mApiPeriod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
