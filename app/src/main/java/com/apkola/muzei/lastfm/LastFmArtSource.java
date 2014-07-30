@@ -5,12 +5,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.android.apps.muzei.api.Artwork;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -212,7 +210,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     private String getUsernameOrMine() {
         String username = getUsername(this);
         if (TextUtils.isEmpty(username)) {
-            return Config.USERNAME;
+            return Config.DEFAULT_USERNAME;
         }
         return username;
     }
