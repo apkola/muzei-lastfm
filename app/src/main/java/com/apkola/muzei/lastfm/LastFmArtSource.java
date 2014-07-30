@@ -151,6 +151,11 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     break;
 
                 case TOP_TRACKS:
+                    if (apiPeriod == ApiPeriod.ONE_MONTH) {
+                        // There is a bug in the API which causes no results to be returned for
+                        // this period and this method.
+                        apiPeriod = ApiPeriod.THREE_MONTHS;
+                    }
                     LastFmService.TracksResponse tracksResponse =
                             service.getTopTracks(username, apiPeriod.toString(), Config.LIMIT);
                     if (tracksResponse == null || tracksResponse.toptracks == null || tracksResponse.toptracks.track == null) {
