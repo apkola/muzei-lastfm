@@ -16,9 +16,15 @@ public interface LastFmService {
             @Query("limit") int limit
     );
 
-
     @GET("/2.0/?method=user.gettopartists&format=json")
     ArtistsResponse getTopArtists(
+            @Query("user") String user,
+            @Query("period") String period,
+            @Query("limit") int limit
+    );
+
+    @GET("/2.0/?method=user.gettoptracks&format=json")
+    TracksResponse getTopTracks(
             @Query("user") String user,
             @Query("period") String period,
             @Query("limit") int limit
@@ -30,6 +36,16 @@ public interface LastFmService {
 
     static class ArtistsResponse {
         TopArtists topartists;
+    }
+
+    static class TracksResponse {
+        TopTracks toptracks;
+    }
+
+    static class TopTracks {
+        List<Track> track;
+        @SerializedName("@attrs")
+        ResponseAttrs attrs;
     }
 
     static class TopAlbums {
@@ -92,10 +108,11 @@ public interface LastFmService {
         int rank;
     }
 
+    static class TrackAttrs {
+        int rank;
+    }
+
     static class Artist extends EntityWithImage {
-//        String name;
-//        String mbid;
-//        String url;
         List<Image> image;
         @SerializedName("@attrs")
         ArtistAttrs attrs;
@@ -108,6 +125,30 @@ public interface LastFmService {
                 }
             }
             return null;
+        }
+    }
+
+    static class Track extends EntityWithImage {
+        int playcount;
+        int duration;
+        Artist artist;
+        List<Image> image;
+        @SerializedName("@attrs")
+        TrackAttrs attrs;
+
+        @Override
+        public String getImageUrl() {
+            for (Image i : image) {
+                if ("extralarge".equals(i.size)) {
+                    return i.text;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public String getByLine() {
+            return artist.name;
         }
     }
 

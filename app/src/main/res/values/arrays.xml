@@ -3,6 +3,7 @@
     <string-array name="lastfm_api_methods">
         <item>Top albums</item>
         <item>Top artists</item>
+        <item>Top tracks</item>
     </string-array>
 
     <string-array name="lastfm_api_periods">

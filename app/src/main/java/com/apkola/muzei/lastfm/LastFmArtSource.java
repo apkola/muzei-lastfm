@@ -152,7 +152,12 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     break;
 
                 case TOP_TRACKS:
-                    items = new ArrayList<LastFmService.EntityWithImage>();
+                    LastFmService.TracksResponse tracksResponse =
+                            service.getTopTracks(username, apiPeriod.toString(), Config.LIMIT);
+                    if (tracksResponse == null || tracksResponse.toptracks == null || tracksResponse.toptracks.track == null) {
+                        throw new RetryException();
+                    }
+                    items = tracksResponse.toptracks.track;
                     break;
             }
         } catch (RetrofitError e) {
