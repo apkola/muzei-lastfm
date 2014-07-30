@@ -104,12 +104,11 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         request.addQueryParam("api_key", Config.API_KEY);
                     }
                 })
-                .setLogLevel(RestAdapter.LogLevel.FULL)
+//                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setErrorHandler(new ErrorHandler() {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {
                         if (retrofitError.getResponse() == null) {
-                            Log.e(TAG, retrofitError.toString());
                             return retrofitError;
                         }
                         int statusCode = retrofitError.getResponse().getStatus();
@@ -127,7 +126,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         ApiMethod apiMethod = getApiMethod(this);
         ApiPeriod apiPeriod = getApiPeriod(this);
 
-        Log.i(TAG, String.format("Trying update %s for last %s for %s", apiMethod, apiPeriod, username));
+//        Log.i(TAG, String.format("Trying update %s for last %s for %s", apiMethod, apiPeriod, username));
 
         LastFmService service = restAdapter.create(LastFmService.class);
         List<? extends LastFmService.EntityWithImage> items = null;
@@ -161,12 +160,12 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     break;
             }
         } catch (RetrofitError e) {
-            Log.e(TAG, "Failed: " + e.getMessage());
+//            Log.e(TAG, "Failed: " + e.getMessage());
             throw new RetryException(e);
         }
 
         if (items.size() == 0) {
-            Log.w(TAG, "No albums returned from API.");
+//            Log.w(TAG, "No albums returned from API.");
             scheduleNext();
             return;
         }
@@ -244,6 +243,6 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     public static ApiPeriod getApiPeriod(Context context) {
-        return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 0)];
+        return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 1)];
     }
 }
