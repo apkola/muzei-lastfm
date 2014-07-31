@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'crashlytics'
 
 android {
     compileSdkVersion 20
@@ -73,6 +74,7 @@ android {
 }
 
 dependencies {
+    compile 'com.crashlytics.android:crashlytics:1.+'
     compile 'com.squareup.retrofit:retrofit:1.6.+'
     compile 'com.google.android.apps.muzei:muzei-api:1.+'
 }

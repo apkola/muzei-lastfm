@@ -27,6 +27,9 @@
             android:label="@string/title_settings"
             android:theme="@style/Theme.Muzei.GallerySettings"
             android:exported="true" />
-    </application>
 
+        <!-- Crashlytics key -->
+        <meta-data android:name="com.crashlytics.ApiKey"
+            android:value="3b65425559538bd33955ec7397784df90a22dfa7"/>
+    </application>
 </manifest>

@@ -11,6 +11,8 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+
 public class SettingsActivity extends Activity {
 
     private static final String TAG = "SettingsActivity";
@@ -37,6 +39,10 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!BuildConfig.DEBUG) {
+            Crashlytics.start(this);
+        }
+
         setContentView(R.layout.settings_activity);
 
         mUsername = (TextView)findViewById(R.id.lastfm_username);

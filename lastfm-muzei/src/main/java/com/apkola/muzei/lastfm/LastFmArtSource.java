@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.apps.muzei.api.Artwork;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
 
@@ -70,6 +71,9 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (!BuildConfig.DEBUG) {
+            Crashlytics.start(this);
+        }
         setUserCommands(BUILTIN_COMMAND_ID_NEXT_ARTWORK);
         setDescription(getApiMethod(this).toString());
     }
