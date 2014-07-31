@@ -101,7 +101,7 @@ def incrementVersionNumber(String prefix) {
     versionFile.write(contents.trim())
 }
 
-task copyRelease (type: Copy, dependsOn: [':myciti:assembleRelease']) {
+task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
     description = 'Copy release APK to share directory'
     from 'build/outputs/apk'
     into "${project.projectDir}" + releaseFolder
@@ -113,7 +113,7 @@ task copyRelease (type: Copy, dependsOn: [':myciti:assembleRelease']) {
     }
 }
 
-task copyBeta (type: Copy, dependsOn: [':myciti:assembleBeta']) {
+task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
     description = 'Copy beta release APK to share directory'
     from 'build/outputs/apk'
     into "${project.projectDir}" + releaseFolder
@@ -126,7 +126,7 @@ task copyBeta (type: Copy, dependsOn: [':myciti:assembleBeta']) {
     }
 }
 
-task copyAlpha (type: Copy, dependsOn: ':myciti:assembleAlpha') {
+task copyAlpha (type: Copy, dependsOn: ':lastfm-muzei:assembleAlpha') {
     description = 'Copy beta release APK to share directory'
     from 'build/outputs/apk'
     into "${project.projectDir}" + releaseFolder
