@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Muzei Last.fm</string>
+    <string name="app_name">Last.fm Muzei Extension</string>
     <string name="source_name">Last.fm</string>
     <string name="source_description">Top albums</string>
     <string name="title_settings">Last.fm Settings</string>
