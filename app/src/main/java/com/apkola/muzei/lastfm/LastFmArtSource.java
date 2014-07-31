@@ -102,7 +102,9 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         request.addQueryParam("api_key", Config.API_KEY);
                     }
                 })
-//                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLogLevel(BuildConfig.DEBUG
+                        ? RestAdapter.LogLevel.FULL
+                        : RestAdapter.LogLevel.NONE)
                 .setErrorHandler(new ErrorHandler() {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {
