@@ -8,13 +8,66 @@ android {
         applicationId "com.apkola.muzei.lastfm"
         minSdkVersion 15
         targetSdkVersion 20
-        versionCode 1
-        versionName "1.0"
+        versionCode Integer.parseInt(getVersionNumber("versionCode"))
+        versionName getVersionNumber("versionName")
     }
-    buildTypes {
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file(debugStoreFile)
+            storePassword debugStorePassword
+            keyAlias debugKeyAlias
+            keyPassword debugKeyPassword
+        }
         release {
-            runProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            storeFile file(releaseStoreFile)
+            storePassword releaseStorePassword
+            keyAlias releaseKeyAlias
+            keyPassword releaseKeyPassword
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            signingConfig signingConfigs.debug
+        }
+        alpha {
+            debuggable false
+            zipAlign true
+            runProguard true
+            versionNameSuffix '-alpha-' + getVersionNumber('alpha')
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+        beta {
+            debuggable false
+            zipAlign true
+            runProguard true
+            versionNameSuffix '-beta-' + getVersionNumber('beta')
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+        release {
+            debuggable false
+            zipAlign true
+            runProguard true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -22,4 +75,91 @@ android {
 dependencies {
     compile 'com.squareup.retrofit:retrofit:1.6.+'
     compile 'com.google.android.apps.muzei:muzei-api:1.+'
+}
+
+
+def getVersionNumber(String prefix) {
+    def version = ''
+    def versionFile = file("${project.projectDir}/../version.txt")
+    versionFile.eachLine { line ->
+        if (line.startsWith(prefix+'=')) {
+            version = line.replace(prefix+'=', '')
+        }
+    }
+    return version
+}
+def incrementVersionNumber(String prefix) {
+    def contents = ''
+    def versionFile = file("${project.projectDir}/../version.txt")
+    versionFile.eachLine { line ->
+        if (line.startsWith(prefix+'=')) {
+            def version = Integer.parseInt(line.replace(prefix+'=', ''))
+            line = prefix+'='+(++version)
+        }
+        contents += line + "\n"
+    }
+    versionFile.write(contents.trim())
+}
+
+task copyRelease (type: Copy, dependsOn: [':myciti:assembleRelease']) {
+    description = 'Copy release APK to share directory'
+    from 'build/outputs/apk'
+    into "${project.projectDir}" + releaseFolder
+    include '**/*release.apk'
+
+    def vName = getVersionNumber('versionName');
+    rename { String fileName ->
+        fileName.replace('release.apk', vName + '.apk')
+    }
+}
+
+task copyBeta (type: Copy, dependsOn: [':myciti:assembleBeta']) {
+    description = 'Copy beta release APK to share directory'
+    from 'build/outputs/apk'
+    into "${project.projectDir}" + releaseFolder
+    include '**/*beta.apk'
+
+    def v = getVersionNumber('beta');
+    def vName = getVersionNumber('versionName');
+    rename { String fileName ->
+        fileName.replace('beta.apk', vName + '-beta-' + v + '.apk')
+    }
+}
+
+task copyAlpha (type: Copy, dependsOn: ':myciti:assembleAlpha') {
+    description = 'Copy beta release APK to share directory'
+    from 'build/outputs/apk'
+    into "${project.projectDir}" + releaseFolder
+    include '**/*alpha.apk'
+
+
+    def v = getVersionNumber('alpha');
+    def vName = getVersionNumber('versionName');
+    rename { String fileName ->
+        fileName.replace('alpha.apk', vName + '-alpha-' + v + '.apk')
+    }
+}
+
+//automatically increment version number for release builds when copyRelease is the calling task
+tasks.whenTaskAdded { task ->
+    if (task.name == 'generateReleaseBuildConfig') {
+        if (gradle.startParameter.taskNames.contains('copyR') ||
+                gradle.startParameter.taskNames.contains('copyRelease')) {
+            incrementVersionNumber('versionCode')
+        }
+    }
+    if (task.name == 'generateBetaBuildConfig') {
+        if (gradle.startParameter.taskNames.contains('copyB') ||
+                gradle.startParameter.taskNames.contains('copyBeta')) {
+            incrementVersionNumber('versionCode')
+            incrementVersionNumber('beta')
+        }
+    }
+    if (task.name == 'generateAlphaBuildConfig') {
+        if (gradle.startParameter.taskNames.contains('copyA') ||
+                gradle.startParameter.taskNames.contains('copyAlpha')) {
+            incrementVersionNumber('versionCode')
+            incrementVersionNumber('alpha')
+        }
+    }
 }
