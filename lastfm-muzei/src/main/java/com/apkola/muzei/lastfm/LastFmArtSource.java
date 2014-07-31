@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.apkola.muzei.lastfm.api.LastFmService;
 import com.apkola.muzei.lastfm.api.model.AlbumsResponse;
@@ -118,6 +119,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {
                         if (retrofitError.getResponse() == null) {
+                            logException(retrofitError);
                             return retrofitError;
                         }
                         int statusCode = retrofitError.getResponse().getStatus();
@@ -126,6 +128,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                             return new RemoteMuzeiArtSource.RetryException();
                         }
                         scheduleNext();
+                        logException(retrofitError);
                         return retrofitError;
                     }
                 })
@@ -175,11 +178,13 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
             }
         } catch (RetrofitError e) {
 //            Log.e(TAG, "Failed: " + e.getMessage());
+            logException(e);
             throw new RetryException(e);
         }
 
         if (items.size() == 0) {
 //            Log.w(TAG, "No albums returned from API.");
+            logException(new RuntimeException("No entities returned from api"));
             scheduleNext();
             return;
         }
@@ -208,6 +213,14 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                 .build());
 
         scheduleNext();
+    }
+
+    private void logException(Exception e) {
+        if (!BuildConfig.DEBUG) {
+            Crashlytics.logException(e);
+        } else {
+            Log.e(TAG, e.getMessage(), e);
+        }
     }
 
     private void scheduleNext() {
