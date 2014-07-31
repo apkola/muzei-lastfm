@@ -6,6 +6,11 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.apkola.muzei.lastfm.api.LastFmService;
+import com.apkola.muzei.lastfm.api.model.AlbumsResponse;
+import com.apkola.muzei.lastfm.api.model.ArtistsResponse;
+import com.apkola.muzei.lastfm.api.model.EntityWithImage;
+import com.apkola.muzei.lastfm.api.model.TracksResponse;
 import com.crashlytics.android.Crashlytics;
 import com.google.android.apps.muzei.api.Artwork;
 import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
@@ -133,11 +138,11 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
 //        Log.i(TAG, String.format("Trying update %s for last %s for %s", apiMethod, apiPeriod, username));
 
         LastFmService service = restAdapter.create(LastFmService.class);
-        List<? extends LastFmService.EntityWithImage> items = null;
+        List<? extends EntityWithImage> items = null;
         try {
             switch (apiMethod) {
                 case TOP_ALBUMS:
-                    LastFmService.AlbumsResponse albumsResponse =
+                    AlbumsResponse albumsResponse =
                             service.getTopAlbums(username, apiPeriod.toString(), Config.LIMIT);
                     if (albumsResponse == null || albumsResponse.topalbums == null || albumsResponse.topalbums.album == null) {
                         throw new RetryException();
@@ -146,7 +151,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     break;
 
                 case TOP_ARTISTS:
-                    LastFmService.ArtistsResponse artistsResponse =
+                    ArtistsResponse artistsResponse =
                             service.getTopArtists(username, apiPeriod.toString(), Config.LIMIT);
                     if (artistsResponse == null || artistsResponse.topartists == null || artistsResponse.topartists.artist == null) {
                         throw new RetryException();
@@ -160,7 +165,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         // this period and this method.
                         apiPeriod = ApiPeriod.THREE_MONTHS;
                     }
-                    LastFmService.TracksResponse tracksResponse =
+                    TracksResponse tracksResponse =
                             service.getTopTracks(username, apiPeriod.toString(), Config.LIMIT);
                     if (tracksResponse == null || tracksResponse.toptracks == null || tracksResponse.toptracks.track == null) {
                         throw new RetryException();
@@ -180,7 +185,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         }
 
         Random random = new Random();
-        LastFmService.EntityWithImage item;
+        EntityWithImage item;
         String token;
 
         while (true) {
