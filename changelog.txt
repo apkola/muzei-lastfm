@@ -1,0 +1,5 @@
+In 1.0.1 (2014/08/05)
+• Show play count in byline
+
+In 1.0.0 (2014/07/31)
+• First release
