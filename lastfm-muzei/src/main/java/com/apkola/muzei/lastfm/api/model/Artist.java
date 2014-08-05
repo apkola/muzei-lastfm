@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class Artist extends EntityWithImage {
+    int playcount;
     List<Image> image;
     @SerializedName("@attrs")
     ArtistAttrs attrs;
@@ -17,5 +18,10 @@ public class Artist extends EntityWithImage {
             }
         }
         return null;
+    }
+
+    @Override
+    public String getByLine() {
+        return String.format("%s plays", playcount);
     }
 }

@@ -24,6 +24,6 @@ public class Album extends EntityWithImage {
 
     @Override
     public String getByLine() {
-        return artist.name;
+        return String.format("%s - %s plays", artist.name, playcount);
     }
 }
