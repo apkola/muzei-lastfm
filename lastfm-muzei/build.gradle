@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.apkola.muzei.lastfm"
-        minSdkVersion 15
+        minSdkVersion 17
         targetSdkVersion 20
         versionCode Integer.parseInt(getVersionNumber("versionCode"))
         versionName getVersionNumber("versionName")
