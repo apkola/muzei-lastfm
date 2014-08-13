@@ -127,6 +127,9 @@ public class SettingsActivity extends Activity {
                     .putInt(LastFmArtSource.PREF_ROTATE_INTERVAL_MIN, rotateMin)
                     .apply();
             invalidateOptionsMenu();
+            if (!BuildConfig.DEBUG) {
+                Crashlytics.setInt("wallpaper_rotate_min", rotateMin);
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);

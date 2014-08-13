@@ -251,12 +251,14 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         getSharedPreferences(context).edit()
                 .putString(PREF_API_USERNAME, username)
                 .apply();
+        setCustomVariable("username", username);
     }
 
     public static void setApiMethod(Context context, ApiMethod apiMethod) {
         getSharedPreferences(context).edit()
                 .putInt(PREF_API_METHOD, apiMethod.ordinal())
                 .apply();
+        setCustomVariable("api_method", apiMethod.toString());
     }
 
     public static ApiMethod getApiMethod(Context context) {
@@ -267,9 +269,19 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         getSharedPreferences(context).edit()
                 .putInt(PREF_API_PERIOD, apiPeriod.ordinal())
                 .apply();
+        setCustomVariable("api_period", apiPeriod.toString());
     }
 
     public static ApiPeriod getApiPeriod(Context context) {
         return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 1)];
+    }
+
+    private static void setCustomVariable(String key, String value) {
+        if (!BuildConfig.DEBUG) {
+            if ("username".equals(key)) {
+                Crashlytics.setUserName(value);
+            }
+            Crashlytics.setString(key, value);
+        }
     }
 }
