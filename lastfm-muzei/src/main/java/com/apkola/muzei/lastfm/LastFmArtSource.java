@@ -32,7 +32,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     private static final String PREF_API_METHOD = "apiMethod";
     private static final String PREF_API_PERIOD = "apiPeriod";
     public static final String PREF_ROTATE_INTERVAL_MIN = "rotate_interval_min";
-    public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 3; //3 hours
+    public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 24; //24 hours
 
     public static final String ACTION_PUBLISH_NEXT_LAST_FM_ITEM =
             "com.apkola.muzei.lastfm.action.PUBLISH_NEXT_LAST_FM_ITEM";
@@ -127,9 +127,8 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                         if (retrofitError.isNetworkError()
                                 || (500 <= statusCode && statusCode < 600)) {
                             log(String.format("Network error: got %d for %s", statusCode, retrofitError.getUrl()));
-                            return new RemoteMuzeiArtSource.RetryException();
+                            return retrofitError;
                         }
-                        scheduleNext();
                         log(String.format("General error for %s", retrofitError.getUrl()));
                         logException(retrofitError);
                         return retrofitError;
