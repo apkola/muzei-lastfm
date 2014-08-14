@@ -87,7 +87,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent == null) {
-            super.onHandleIntent(intent);
+            super.onHandleIntent(null);
             return;
         }
 
@@ -119,15 +119,18 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {
                         if (retrofitError.getResponse() == null) {
+                            log(String.format("No response for %s", retrofitError.getUrl()));
                             logException(retrofitError);
                             return retrofitError;
                         }
                         int statusCode = retrofitError.getResponse().getStatus();
                         if (retrofitError.isNetworkError()
                                 || (500 <= statusCode && statusCode < 600)) {
+                            log(String.format("Network error: got %d for %s", statusCode, retrofitError.getUrl()));
                             return new RemoteMuzeiArtSource.RetryException();
                         }
                         scheduleNext();
+                        log(String.format("General error for %s", retrofitError.getUrl()));
                         logException(retrofitError);
                         return retrofitError;
                     }
@@ -178,6 +181,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
             }
         } catch (RetrofitError e) {
 //            Log.e(TAG, "Failed: " + e.getMessage());
+            log (String.format("Fetch image failed for %s: %s ", e.getMessage(), e.getUrl()));
             logException(e);
             throw new RetryException(e);
         }
@@ -213,6 +217,14 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                 .build());
 
         scheduleNext();
+    }
+
+    private void log(String message) {
+        if (!BuildConfig.DEBUG) {
+            Crashlytics.log(message);
+        } else {
+            Log.e(TAG, message);
+        }
     }
 
     private void logException(Exception e) {
