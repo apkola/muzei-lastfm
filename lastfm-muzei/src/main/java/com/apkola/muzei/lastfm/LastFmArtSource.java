@@ -32,7 +32,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     private static final String PREF_API_METHOD = "apiMethod";
     private static final String PREF_API_PERIOD = "apiPeriod";
     public static final String PREF_ROTATE_INTERVAL_MIN = "rotate_interval_min";
-    public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 3; //3 hours
+    public static final int DEFAULT_ROTATE_INTERVAL_MIN = 60 * 24; //24 hours
 
     public static final String ACTION_PUBLISH_NEXT_LAST_FM_ITEM =
             "com.apkola.muzei.lastfm.action.PUBLISH_NEXT_LAST_FM_ITEM";
@@ -87,7 +87,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent == null) {
-            super.onHandleIntent(intent);
+            super.onHandleIntent(null);
             return;
         }
 
@@ -119,15 +119,17 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {
                         if (retrofitError.getResponse() == null) {
+                            log(String.format("No response for %s", retrofitError.getUrl()));
                             logException(retrofitError);
                             return retrofitError;
                         }
                         int statusCode = retrofitError.getResponse().getStatus();
                         if (retrofitError.isNetworkError()
                                 || (500 <= statusCode && statusCode < 600)) {
-                            return new RemoteMuzeiArtSource.RetryException();
+                            log(String.format("Network error: got %d for %s", statusCode, retrofitError.getUrl()));
+                            return retrofitError;
                         }
-                        scheduleNext();
+                        log(String.format("General error for %s", retrofitError.getUrl()));
                         logException(retrofitError);
                         return retrofitError;
                     }
@@ -178,6 +180,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
             }
         } catch (RetrofitError e) {
 //            Log.e(TAG, "Failed: " + e.getMessage());
+            log (String.format("Fetch image failed for %s: %s ", e.getMessage(), e.getUrl()));
             logException(e);
             throw new RetryException(e);
         }
@@ -213,6 +216,14 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                 .build());
 
         scheduleNext();
+    }
+
+    private void log(String message) {
+        if (!BuildConfig.DEBUG) {
+            Crashlytics.log(message);
+        } else {
+            Log.e(TAG, message);
+        }
     }
 
     private void logException(Exception e) {
@@ -251,12 +262,14 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         getSharedPreferences(context).edit()
                 .putString(PREF_API_USERNAME, username)
                 .apply();
+        setCustomVariable("username", username);
     }
 
     public static void setApiMethod(Context context, ApiMethod apiMethod) {
         getSharedPreferences(context).edit()
                 .putInt(PREF_API_METHOD, apiMethod.ordinal())
                 .apply();
+        setCustomVariable("api_method", apiMethod.toString());
     }
 
     public static ApiMethod getApiMethod(Context context) {
@@ -267,9 +280,19 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         getSharedPreferences(context).edit()
                 .putInt(PREF_API_PERIOD, apiPeriod.ordinal())
                 .apply();
+        setCustomVariable("api_period", apiPeriod.toString());
     }
 
     public static ApiPeriod getApiPeriod(Context context) {
         return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 1)];
+    }
+
+    private static void setCustomVariable(String key, String value) {
+        if (!BuildConfig.DEBUG) {
+            if ("username".equals(key)) {
+                Crashlytics.setUserName(value);
+            }
+            Crashlytics.setString(key, value);
+        }
     }
 }

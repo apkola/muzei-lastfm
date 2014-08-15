@@ -20,7 +20,7 @@
             </intent-filter>
             <meta-data android:name="color" android:value="#f00" />
             <meta-data android:name="settingsActivity"
-                android:value=".SettingsActivity" />
+                android:value="com.apkola.muzei.lastfm.SettingsActivity" />
         </service>
 
         <activity android:name=".SettingsActivity"
