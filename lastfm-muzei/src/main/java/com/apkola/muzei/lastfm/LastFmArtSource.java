@@ -79,9 +79,16 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
         super.onCreate();
         if (!BuildConfig.DEBUG) {
             Crashlytics.start(this);
+            setAllCustomVariables();
         }
         setUserCommands(BUILTIN_COMMAND_ID_NEXT_ARTWORK);
         setDescription(getApiMethod(this).toString());
+    }
+
+    private void setAllCustomVariables() {
+        setCustomVariable("username", getUsername(this));
+        setCustomVariable("apiMethod", getApiMethod(this).toString());
+        setCustomVariable("apiPeriod", getApiPeriod(this).toString());
     }
 
     @Override
