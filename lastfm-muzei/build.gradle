@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'crashlytics'
 
-
 def Properties localProps = new Properties()
 localProps.load(new FileInputStream(file('../local.properties')))
 
@@ -15,6 +14,9 @@ android {
         targetSdkVersion 20
         versionCode Integer.parseInt(getVersionNumber("versionCode"))
         versionName getVersionNumber("versionName")
+
+        buildConfigField "String", "LASTFM_API_KEY", localProps['lastfm.api.key']
+        buildConfigField "String", "LASTFM_DEFAULT_USERNAME", localProps['lastfm.default.username']
     }
 
     compileOptions {
