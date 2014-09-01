@@ -27,25 +27,25 @@ android {
     }
 
     signingConfigs {
-        debug {
-            storeFile file(debugStoreFile)
-            storePassword debugStorePassword
-            keyAlias debugKeyAlias
-            keyPassword debugKeyPassword
-        }
-        release {
-            storeFile file(releaseStoreFile)
-            storePassword releaseStorePassword
-            keyAlias releaseKeyAlias
-            keyPassword releaseKeyPassword
-        }
+//        debug {
+//            storeFile file(debugStoreFile)
+//            storePassword debugStorePassword
+//            keyAlias debugKeyAlias
+//            keyPassword debugKeyPassword
+//        }
+//        release {
+//            storeFile file(releaseStoreFile)
+//            storePassword releaseStorePassword
+//            keyAlias releaseKeyAlias
+//            keyPassword releaseKeyPassword
+//        }
     }
 
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
-            signingConfig signingConfigs.debug
+//            signingConfig signingConfigs.debug
         }
         alpha {
             debuggable false
