@@ -1,6 +1,10 @@
 apply plugin: 'com.android.application'
 apply plugin: 'crashlytics'
 
+
+def Properties localProps = new Properties()
+localProps.load(new FileInputStream(file('../local.properties')))
+
 android {
     compileSdkVersion 20
     buildToolsVersion "20.0.0"
@@ -26,26 +30,30 @@ android {
         exclude 'META-INF/NOTICE.txt'
     }
 
+    def Properties keyProps = new Properties()
+    assert localProps['keystore.props.file'];
+    keyProps.load(new FileInputStream(file(localProps['keystore.props.file'])))
+
     signingConfigs {
-//        debug {
-//            storeFile file(debugStoreFile)
-//            storePassword debugStorePassword
-//            keyAlias debugKeyAlias
-//            keyPassword debugKeyPassword
-//        }
-//        release {
-//            storeFile file(releaseStoreFile)
-//            storePassword releaseStorePassword
-//            keyAlias releaseKeyAlias
-//            keyPassword releaseKeyPassword
-//        }
+        debug {
+            storeFile file(keyProps["debugStoreFile"])
+            storePassword keyProps["debugStorePassword"]
+            keyAlias keyProps["debugKeyAlias"]
+            keyPassword keyProps["debugKeyPassword"]
+        }
+        release {
+            storeFile file(keyProps["releaseStoreFile"])
+            storePassword keyProps["releaseStorePassword"]
+            keyAlias keyProps["releaseKeyAlias"]
+            keyPassword keyProps["releaseKeyPassword"]
+        }
     }
 
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
-//            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.debug
         }
         alpha {
             debuggable false
@@ -106,7 +114,7 @@ def incrementVersionNumber(String prefix) {
 task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
     description = 'Copy release APK to share directory'
     from 'build/outputs/apk'
-    into "${project.projectDir}" + releaseFolder
+    into "${project.projectDir}" + localProps['releaseFolder']
     include '**/*release.apk'
 
     def vName = getVersionNumber('versionName');
@@ -118,7 +126,7 @@ task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
 task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
     description = 'Copy beta release APK to share directory'
     from 'build/outputs/apk'
-    into "${project.projectDir}" + releaseFolder
+    into "${project.projectDir}" + localProps['releaseFolder']
     include '**/*beta.apk'
 
     def v = getVersionNumber('beta');
@@ -131,7 +139,7 @@ task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
 task copyAlpha (type: Copy, dependsOn: ':lastfm-muzei:assembleAlpha') {
     description = 'Copy beta release APK to share directory'
     from 'build/outputs/apk'
-    into "${project.projectDir}" + releaseFolder
+    into "${project.projectDir}" + localProps['releaseFolder']
     include '**/*alpha.apk'
 
 
