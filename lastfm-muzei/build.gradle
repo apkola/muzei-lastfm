@@ -5,18 +5,18 @@ def Properties localProps = new Properties()
 localProps.load(new FileInputStream(file('../local.properties')))
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion "20.0.0"
+    compileSdkVersion 21
+    buildToolsVersion '21.1.1'
 
     defaultConfig {
-        applicationId "com.apkola.muzei.lastfm"
+        applicationId 'com.apkola.muzei.lastfm'
         minSdkVersion 17
-        targetSdkVersion 20
-        versionCode Integer.parseInt(getVersionNumber("versionCode"))
-        versionName getVersionNumber("versionName")
+        targetSdkVersion 21
+        versionCode Integer.parseInt(getVersionNumber('versionCode'))
+        versionName getVersionNumber('versionName')
 
-        buildConfigField "String", "LASTFM_API_KEY", localProps['lastfm.api.key']
-        buildConfigField "String", "LASTFM_DEFAULT_USERNAME", localProps['lastfm.default.username']
+        buildConfigField 'String', 'LASTFM_API_KEY', localProps['lastfm.api.key']
+        buildConfigField 'String', 'LASTFM_DEFAULT_USERNAME', localProps['lastfm.default.username']
     }
 
     compileOptions {
@@ -38,45 +38,45 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file(keyProps["debugStoreFile"])
-            storePassword keyProps["debugStorePassword"]
-            keyAlias keyProps["debugKeyAlias"]
-            keyPassword keyProps["debugKeyPassword"]
+            storeFile file(keyProps['debugStoreFile'])
+            storePassword keyProps['debugStorePassword']
+            keyAlias keyProps['debugKeyAlias']
+            keyPassword keyProps['debugKeyPassword']
         }
         release {
-            storeFile file(keyProps["releaseStoreFile"])
-            storePassword keyProps["releaseStorePassword"]
-            keyAlias keyProps["releaseKeyAlias"]
-            keyPassword keyProps["releaseKeyPassword"]
+            storeFile file(keyProps['releaseStoreFile'])
+            storePassword keyProps['releaseStorePassword']
+            keyAlias keyProps['releaseKeyAlias']
+            keyPassword keyProps['releaseKeyPassword']
         }
     }
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
-            versionNameSuffix "-debug"
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
         }
         alpha {
             debuggable false
-            zipAlign true
-            runProguard true
+            zipAlignEnabled true
+            minifyEnabled true
             versionNameSuffix '-alpha-' + getVersionNumber('alpha')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.release
         }
         beta {
             debuggable false
-            zipAlign true
-            runProguard true
+            zipAlignEnabled true
+            minifyEnabled true
             versionNameSuffix '-beta-' + getVersionNumber('beta')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.release
         }
         release {
             debuggable false
-            zipAlign true
-            runProguard true
+            zipAlignEnabled true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.release
         }
@@ -84,15 +84,15 @@ android {
 }
 
 dependencies {
-    compile 'com.crashlytics.android:crashlytics:1.+'
-    compile 'com.squareup.retrofit:retrofit:1.6.+'
-    compile 'com.google.android.apps.muzei:muzei-api:1.+'
+    compile 'com.crashlytics.android:crashlytics:1.1.13'
+    compile 'com.squareup.retrofit:retrofit:1.8.0'
+    compile 'com.google.android.apps.muzei:muzei-api:1.0'
 }
 
 
 def getVersionNumber(String prefix) {
     def version = ''
-    def versionFile = file("${project.projectDir}/../version.txt")
+    def versionFile = file('${project.projectDir}/../../version.txt')
     versionFile.eachLine { line ->
         if (line.startsWith(prefix+'=')) {
             version = line.replace(prefix+'=', '')
@@ -102,13 +102,13 @@ def getVersionNumber(String prefix) {
 }
 def incrementVersionNumber(String prefix) {
     def contents = ''
-    def versionFile = file("${project.projectDir}/../version.txt")
+    def versionFile = file('${project.projectDir}/../../version.txt')
     versionFile.eachLine { line ->
         if (line.startsWith(prefix+'=')) {
             def version = Integer.parseInt(line.replace(prefix+'=', ''))
             line = prefix+'='+(++version)
         }
-        contents += line + "\n"
+        contents += line + '\n'
     }
     versionFile.write(contents.trim())
 }
@@ -116,7 +116,7 @@ def incrementVersionNumber(String prefix) {
 task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
     description = 'Copy release APK to share directory'
     from 'build/outputs/apk'
-    into "${project.projectDir}" + localProps['releaseFolder']
+    into '${project.projectDir}' + localProps['releaseFolder']
     include '**/*release.apk'
 
     def vName = getVersionNumber('versionName');
@@ -128,7 +128,7 @@ task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
 task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
     description = 'Copy beta release APK to share directory'
     from 'build/outputs/apk'
-    into "${project.projectDir}" + localProps['releaseFolder']
+    into '${project.projectDir}' + localProps['releaseFolder']
     include '**/*beta.apk'
 
     def v = getVersionNumber('beta');
@@ -141,7 +141,7 @@ task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
 task copyAlpha (type: Copy, dependsOn: ':lastfm-muzei:assembleAlpha') {
     description = 'Copy beta release APK to share directory'
     from 'build/outputs/apk'
-    into "${project.projectDir}" + localProps['releaseFolder']
+    into '${project.projectDir}' + localProps['releaseFolder']
     include '**/*alpha.apk'
 
 
