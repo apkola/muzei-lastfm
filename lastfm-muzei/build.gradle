@@ -4,33 +4,11 @@ apply plugin: 'crashlytics'
 def Properties localProps = new Properties()
 localProps.load(new FileInputStream(file('../local.properties')))
 
+apply from: 'release-tools.gradle'
+
 android {
     compileSdkVersion 21
     buildToolsVersion '21.1.1'
-
-    defaultConfig {
-        applicationId 'com.apkola.muzei.lastfm'
-        minSdkVersion 17
-        targetSdkVersion 21
-        versionCode Integer.parseInt(getVersionNumber('versionCode'))
-        versionName getVersionNumber('versionName')
-
-        buildConfigField 'String', 'LASTFM_API_KEY', localProps['lastfm.api.key']
-        buildConfigField 'String', 'LASTFM_DEFAULT_USERNAME', localProps['lastfm.default.username']
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
-
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-    }
 
     def Properties keyProps = new Properties()
     assert localProps['keystore.props.file'];
@@ -51,6 +29,31 @@ android {
         }
     }
 
+    defaultConfig {
+        applicationId 'com.apkola.muzei.lastfm'
+        minSdkVersion 17
+        targetSdkVersion 21
+
+        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        signingConfig signingConfigs.release
+
+        buildConfigField 'String', 'LASTFM_API_KEY', localProps['lastfm.api.key']
+        buildConfigField 'String', 'LASTFM_DEFAULT_USERNAME', localProps['lastfm.default.username']
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix '.debug'
@@ -61,24 +64,16 @@ android {
             debuggable false
             zipAlignEnabled true
             minifyEnabled true
-            versionNameSuffix '-alpha-' + getVersionNumber('alpha')
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
         }
         beta {
             debuggable false
             zipAlignEnabled true
             minifyEnabled true
-            versionNameSuffix '-beta-' + getVersionNumber('beta')
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
         }
         release {
             debuggable false
             zipAlignEnabled true
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
         }
     }
 }
@@ -87,91 +82,4 @@ dependencies {
     compile 'com.crashlytics.android:crashlytics:1.1.13'
     compile 'com.squareup.retrofit:retrofit:1.8.0'
     compile 'com.google.android.apps.muzei:muzei-api:1.0'
-}
-
-
-def getVersionNumber(String prefix) {
-    def version = ''
-    def versionFile = file('${project.projectDir}/../../version.txt')
-    versionFile.eachLine { line ->
-        if (line.startsWith(prefix+'=')) {
-            version = line.replace(prefix+'=', '')
-        }
-    }
-    return version
-}
-def incrementVersionNumber(String prefix) {
-    def contents = ''
-    def versionFile = file('${project.projectDir}/../../version.txt')
-    versionFile.eachLine { line ->
-        if (line.startsWith(prefix+'=')) {
-            def version = Integer.parseInt(line.replace(prefix+'=', ''))
-            line = prefix+'='+(++version)
-        }
-        contents += line + '\n'
-    }
-    versionFile.write(contents.trim())
-}
-
-task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
-    description = 'Copy release APK to share directory'
-    from 'build/outputs/apk'
-    into '${project.projectDir}' + localProps['releaseFolder']
-    include '**/*release.apk'
-
-    def vName = getVersionNumber('versionName');
-    rename { String fileName ->
-        fileName.replace('release.apk', vName + '.apk')
-    }
-}
-
-task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
-    description = 'Copy beta release APK to share directory'
-    from 'build/outputs/apk'
-    into '${project.projectDir}' + localProps['releaseFolder']
-    include '**/*beta.apk'
-
-    def v = getVersionNumber('beta');
-    def vName = getVersionNumber('versionName');
-    rename { String fileName ->
-        fileName.replace('beta.apk', vName + '-beta-' + v + '.apk')
-    }
-}
-
-task copyAlpha (type: Copy, dependsOn: ':lastfm-muzei:assembleAlpha') {
-    description = 'Copy beta release APK to share directory'
-    from 'build/outputs/apk'
-    into '${project.projectDir}' + localProps['releaseFolder']
-    include '**/*alpha.apk'
-
-
-    def v = getVersionNumber('alpha');
-    def vName = getVersionNumber('versionName');
-    rename { String fileName ->
-        fileName.replace('alpha.apk', vName + '-alpha-' + v + '.apk')
-    }
-}
-
-//automatically increment version number for release builds when copyRelease is the calling task
-tasks.whenTaskAdded { task ->
-    if (task.name == 'generateReleaseBuildConfig') {
-        if (gradle.startParameter.taskNames.contains('copyR') ||
-                gradle.startParameter.taskNames.contains('copyRelease')) {
-            incrementVersionNumber('versionCode')
-        }
-    }
-    if (task.name == 'generateBetaBuildConfig') {
-        if (gradle.startParameter.taskNames.contains('copyB') ||
-                gradle.startParameter.taskNames.contains('copyBeta')) {
-            incrementVersionNumber('versionCode')
-            incrementVersionNumber('beta')
-        }
-    }
-    if (task.name == 'generateAlphaBuildConfig') {
-        if (gradle.startParameter.taskNames.contains('copyA') ||
-                gradle.startParameter.taskNames.contains('copyAlpha')) {
-            incrementVersionNumber('versionCode')
-            incrementVersionNumber('alpha')
-        }
-    }
 }

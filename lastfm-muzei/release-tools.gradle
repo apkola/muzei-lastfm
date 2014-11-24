@@ -1,0 +1,107 @@
+import groovy.transform.Field
+
+/**
+ * Build a signed version of the APK and copy it to releases folder.
+ */
+
+def versionPropsFile = file('../version.properties')
+if (!versionPropsFile.canRead()) {
+    throw new GradleException("Could not read version.properties!")
+}
+@Field def Properties versionProps = new Properties()
+versionProps.load(new FileInputStream(versionPropsFile))
+
+// Set the version code and name for the android default config and each build type
+android {
+    defaultConfig {
+        versionCode versionProps.versionCode.toInteger()
+        versionName versionProps.versionName
+    }
+    buildTypes {
+        alpha {
+            versionNameSuffix '-alpha-' + versionProps.alpha
+        }
+        beta {
+            versionNameSuffix '-beta-' + versionProps.beta
+        }
+    }
+}
+
+def incrementVersionCode = {
+    def code = versionProps.versionCode.toInteger() + 1
+    versionProps.versionCode = code.toString()
+    versionProps.store(versionPropsFile.newWriter(),
+        "# When incrementing versionName, reset alpha and beta to 1. Don't manually update version code")
+}
+
+def incrementBetaVersion = {
+    //increment versionCode as well
+    def code = versionProps.versionCode.toInteger() + 1
+    versionProps.versionCode = code.toString()
+
+    code = versionProps.beta.toInteger() + 1
+    versionProps.beta = code.toString();
+    versionProps.store(versionPropsFile.newWriter(),
+        "# When incrementing versionName, reset alpha and beta to 1. Don't manually update version code")
+}
+
+def incrementAlphaVersion = {
+    //increment versionCode as well
+    def code = versionProps.versionCode.toInteger() + 1
+    versionProps.versionCode = code.toString()
+
+    code = versionProps.alpha.toInteger() + 1
+    versionProps.alpha = code.toString();
+    versionProps.store(versionPropsFile.newWriter(),
+        "# When incrementing versionName, reset alpha and beta to 1. Don't manually update version code")
+}
+
+task buildRelease (type: Copy, dependsOn: assembleRelease) {
+    description = 'Build and copy release APK to release directory'
+    from 'build/outputs/apk'
+    into versionProps.releaseFolder
+    include '**/*release.apk'
+
+    def vName = versionProps.versionName
+    def vCode = versionProps.versionCode
+    rename { String fileName ->
+        fileName.replace('lastfm-muzei-release.apk', 'lastfm-muzei-' + vName + '_' + vCode + '.apk')
+    }
+}
+buildRelease.finalizedBy {
+    incrementVersionCode
+}
+
+task buildBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
+    description = 'Build and copy beta release APK to release directory'
+    from 'build/outputs/apk'
+    into versionProps.releaseFolder
+    include '**/*beta.apk'
+
+    def vName = versionProps.versionName
+    def vBeta = versionProps.beta
+    def vCode = versionProps.versionCode
+    rename { String fileName ->
+        fileName.replace('lastfm-muzei-beta.apk', 'lastfm-muzei-' + vName + '-beta-' + vBeta + '_' + vCode + '.apk')
+    }
+}
+buildBeta.finalizedBy {
+    incrementBetaVersion
+}
+
+task buildAlpha (type: Copy, dependsOn: [':lastfm-muzei:assembleAlpha']) {
+    description = 'Build and copy alpha release APK to release directory'
+    from 'build/outputs/apk'
+    into versionProps.releaseFolder
+    include '**/*alpha.apk'
+
+    def vName = versionProps.versionName
+    def vAlpha = versionProps.alpha
+    def vCode = versionProps.versionCode
+    rename { String fileName ->
+        fileName.replace('lastfm-muzei-alpha.apk', 'lastfm-muzei-' + vName + '-alpha-' + vAlpha + '_' + vCode + '.apk')
+    }
+}
+buildAlpha.finalizedBy {
+    incrementAlphaVersion
+}
