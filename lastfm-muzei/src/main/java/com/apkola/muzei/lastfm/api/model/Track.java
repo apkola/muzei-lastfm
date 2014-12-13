@@ -14,6 +14,7 @@ public class Track extends EntityWithImage {
 
     @Override
     public String getImageUrl() {
+        if (image == null) return null;
         for (Image i : image) {
             if ("extralarge".equals(i.size)) {
                 return i.text;

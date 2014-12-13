@@ -12,6 +12,7 @@ public class Artist extends EntityWithImage {
 
     @Override
     public String getImageUrl() {
+        if (image == null) return null;
         for (Image i : image) {
             if ("mega".equals(i.size)) {
                 return i.text;

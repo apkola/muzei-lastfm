@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
+import io.fabric.sdk.android.Fabric;
+
 public class SettingsActivity extends Activity {
 
     private static final String TAG = "SettingsActivity";
@@ -40,7 +42,7 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (!BuildConfig.DEBUG) {
-            Crashlytics.start(this);
+            Fabric.with(this, new Crashlytics());
         }
 
         setContentView(R.layout.settings_activity);

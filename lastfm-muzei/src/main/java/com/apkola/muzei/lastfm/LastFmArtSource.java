@@ -19,6 +19,7 @@ import com.google.android.apps.muzei.api.RemoteMuzeiArtSource;
 import java.util.List;
 import java.util.Random;
 
+import io.fabric.sdk.android.Fabric;
 import retrofit.ErrorHandler;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
@@ -78,7 +79,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     public void onCreate() {
         super.onCreate();
         if (!BuildConfig.DEBUG) {
-            Crashlytics.start(this);
+            Fabric.with(this, new Crashlytics());
             setAllCustomVariables();
         }
         setUserCommands(BUILTIN_COMMAND_ID_NEXT_ARTWORK);
@@ -131,7 +132,7 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
                             return retrofitError;
                         }
                         int statusCode = retrofitError.getResponse().getStatus();
-                        if (retrofitError.isNetworkError()
+                        if (retrofitError.getKind() == RetrofitError.Kind.NETWORK
                                 || (500 <= statusCode && statusCode < 600)) {
                             log(String.format("Network error: got %d for %s", statusCode, retrofitError.getUrl()));
                             return retrofitError;
@@ -280,7 +281,8 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     public static ApiMethod getApiMethod(Context context) {
-        return ApiMethod.values()[getSharedPreferences(context).getInt(PREF_API_METHOD, 0)];
+        return ApiMethod.values()[getSharedPreferences(context)
+                .getInt(PREF_API_METHOD, 0)];
     }
 
     public static void setApiPeriod(Context context, ApiPeriod apiPeriod) {
@@ -291,7 +293,8 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     public static ApiPeriod getApiPeriod(Context context) {
-        return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 1)];
+        return ApiPeriod.values()[getSharedPreferences(context)
+                .getInt(PREF_API_PERIOD, ApiPeriod.values().length-1)];
     }
 
     private static void setCustomVariable(String key, String value) {

@@ -1,20 +1,58 @@
-apply plugin: 'com.android.application'
-apply plugin: 'crashlytics'
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'https://maven.fabric.io/public' }
+    }
 
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.14.4'
+    }
+}
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply from: 'release-tools.gradle'
+
+repositories {
+    jcenter()
+    maven { url 'https://maven.fabric.io/public' }
+}
 
 def Properties localProps = new Properties()
 localProps.load(new FileInputStream(file('../local.properties')))
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion "20.0.0"
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
+
+    def Properties keyProps = new Properties()
+    assert localProps['keystore.props.file'];
+    keyProps.load(new FileInputStream(file(localProps['keystore.props.file'])))
+
+    signingConfigs {
+        debug {
+            storeFile file(keyProps['debugStoreFile'])
+            storePassword keyProps['debugStorePassword']
+            keyAlias keyProps['debugKeyAlias']
+            keyPassword keyProps['debugKeyPassword']
+        }
+        release {
+            storeFile file(keyProps['releaseStoreFile'])
+            storePassword keyProps['releaseStorePassword']
+            keyAlias keyProps['releaseKeyAlias']
+            keyPassword keyProps['releaseKeyPassword']
+        }
+    }
 
     defaultConfig {
-        applicationId "com.apkola.muzei.lastfm"
+        applicationId 'com.apkola.muzei.lastfm'
         minSdkVersion 17
-        targetSdkVersion 20
-        versionCode Integer.parseInt(getVersionNumber("versionCode"))
-        versionName getVersionNumber("versionName")
+        targetSdkVersion 21
+
+        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        signingConfig signingConfigs.release
+
+        buildConfigField 'String', 'LASTFM_API_KEY', localProps['lastfm.api.key']
+        buildConfigField 'String', 'LASTFM_DEFAULT_USERNAME', localProps['lastfm.default.username']
     }
 
     compileOptions {
@@ -30,146 +68,34 @@ android {
         exclude 'META-INF/NOTICE.txt'
     }
 
-    def Properties keyProps = new Properties()
-    assert localProps['keystore.props.file'];
-    keyProps.load(new FileInputStream(file(localProps['keystore.props.file'])))
-
-    signingConfigs {
-        debug {
-            storeFile file(keyProps["debugStoreFile"])
-            storePassword keyProps["debugStorePassword"]
-            keyAlias keyProps["debugKeyAlias"]
-            keyPassword keyProps["debugKeyPassword"]
-        }
-        release {
-            storeFile file(keyProps["releaseStoreFile"])
-            storePassword keyProps["releaseStorePassword"]
-            keyAlias keyProps["releaseKeyAlias"]
-            keyPassword keyProps["releaseKeyPassword"]
-        }
-    }
-
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
-            versionNameSuffix "-debug"
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
         }
         alpha {
             debuggable false
-            zipAlign true
-            runProguard true
-            versionNameSuffix '-alpha-' + getVersionNumber('alpha')
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
+            zipAlignEnabled true
+            minifyEnabled true
         }
         beta {
             debuggable false
-            zipAlign true
-            runProguard true
-            versionNameSuffix '-beta-' + getVersionNumber('beta')
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
+            zipAlignEnabled true
+            minifyEnabled true
         }
         release {
             debuggable false
-            zipAlign true
-            runProguard true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.release
+            zipAlignEnabled true
+            minifyEnabled true
         }
     }
 }
 
 dependencies {
-    compile 'com.crashlytics.android:crashlytics:1.+'
-    compile 'com.squareup.retrofit:retrofit:1.6.+'
-    compile 'com.google.android.apps.muzei:muzei-api:1.+'
-}
-
-
-def getVersionNumber(String prefix) {
-    def version = ''
-    def versionFile = file("${project.projectDir}/../version.txt")
-    versionFile.eachLine { line ->
-        if (line.startsWith(prefix+'=')) {
-            version = line.replace(prefix+'=', '')
-        }
-    }
-    return version
-}
-def incrementVersionNumber(String prefix) {
-    def contents = ''
-    def versionFile = file("${project.projectDir}/../version.txt")
-    versionFile.eachLine { line ->
-        if (line.startsWith(prefix+'=')) {
-            def version = Integer.parseInt(line.replace(prefix+'=', ''))
-            line = prefix+'='+(++version)
-        }
-        contents += line + "\n"
-    }
-    versionFile.write(contents.trim())
-}
-
-task copyRelease (type: Copy, dependsOn: [':lastfm-muzei:assembleRelease']) {
-    description = 'Copy release APK to share directory'
-    from 'build/outputs/apk'
-    into "${project.projectDir}" + localProps['releaseFolder']
-    include '**/*release.apk'
-
-    def vName = getVersionNumber('versionName');
-    rename { String fileName ->
-        fileName.replace('release.apk', vName + '.apk')
-    }
-}
-
-task copyBeta (type: Copy, dependsOn: [':lastfm-muzei:assembleBeta']) {
-    description = 'Copy beta release APK to share directory'
-    from 'build/outputs/apk'
-    into "${project.projectDir}" + localProps['releaseFolder']
-    include '**/*beta.apk'
-
-    def v = getVersionNumber('beta');
-    def vName = getVersionNumber('versionName');
-    rename { String fileName ->
-        fileName.replace('beta.apk', vName + '-beta-' + v + '.apk')
-    }
-}
-
-task copyAlpha (type: Copy, dependsOn: ':lastfm-muzei:assembleAlpha') {
-    description = 'Copy beta release APK to share directory'
-    from 'build/outputs/apk'
-    into "${project.projectDir}" + localProps['releaseFolder']
-    include '**/*alpha.apk'
-
-
-    def v = getVersionNumber('alpha');
-    def vName = getVersionNumber('versionName');
-    rename { String fileName ->
-        fileName.replace('alpha.apk', vName + '-alpha-' + v + '.apk')
-    }
-}
-
-//automatically increment version number for release builds when copyRelease is the calling task
-tasks.whenTaskAdded { task ->
-    if (task.name == 'generateReleaseBuildConfig') {
-        if (gradle.startParameter.taskNames.contains('copyR') ||
-                gradle.startParameter.taskNames.contains('copyRelease')) {
-            incrementVersionNumber('versionCode')
-        }
-    }
-    if (task.name == 'generateBetaBuildConfig') {
-        if (gradle.startParameter.taskNames.contains('copyB') ||
-                gradle.startParameter.taskNames.contains('copyBeta')) {
-            incrementVersionNumber('versionCode')
-            incrementVersionNumber('beta')
-        }
-    }
-    if (task.name == 'generateAlphaBuildConfig') {
-        if (gradle.startParameter.taskNames.contains('copyA') ||
-                gradle.startParameter.taskNames.contains('copyAlpha')) {
-            incrementVersionNumber('versionCode')
-            incrementVersionNumber('alpha')
-        }
+    compile 'com.squareup.retrofit:retrofit:1.8.0'
+    compile 'com.google.android.apps.muzei:muzei-api:2.0'
+    compile('com.crashlytics.sdk.android:crashlytics:2.1.0@aar') {
+        transitive = true;
     }
 }

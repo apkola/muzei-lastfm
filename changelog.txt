@@ -1,3 +1,7 @@
+In 1.0.3 (2014/12/13)
+• Updated to Muzei API 2.0
+• Default to Overall time span for better results on first run
+
 In 1.0.2 (2014/08/15)
 • Bug fixes and tweaks
 

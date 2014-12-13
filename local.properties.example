@@ -1,4 +1,6 @@
 # This is an example local.properties file.
 sdk.dir=/path/to/android/sdk
-releaseFolder=../releases
 keystore.props.file=../keystore.properties
+releaseFolder=../releases
+lastfm.api.key="api_key_here"
+lastfm.default.username="edvedder"
