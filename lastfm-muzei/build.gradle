@@ -1,14 +1,28 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.14.4'
+    }
+}
 apply plugin: 'com.android.application'
-apply plugin: 'crashlytics'
+apply plugin: 'io.fabric'
+apply from: 'release-tools.gradle'
+
+repositories {
+    jcenter()
+    maven { url 'https://maven.fabric.io/public' }
+}
 
 def Properties localProps = new Properties()
 localProps.load(new FileInputStream(file('../local.properties')))
 
-apply from: 'release-tools.gradle'
-
 android {
     compileSdkVersion 21
-    buildToolsVersion '21.1.1'
+    buildToolsVersion '21.1.2'
 
     def Properties keyProps = new Properties()
     assert localProps['keystore.props.file'];
@@ -79,7 +93,9 @@ android {
 }
 
 dependencies {
-    compile 'com.crashlytics.android:crashlytics:1.1.13'
     compile 'com.squareup.retrofit:retrofit:1.8.0'
     compile 'com.google.android.apps.muzei:muzei-api:1.0'
+    compile('com.crashlytics.sdk.android:crashlytics:2.1.0@aar') {
+        transitive = true;
+    }
 }
