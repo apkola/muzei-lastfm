@@ -281,7 +281,8 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     public static ApiMethod getApiMethod(Context context) {
-        return ApiMethod.values()[getSharedPreferences(context).getInt(PREF_API_METHOD, 0)];
+        return ApiMethod.values()[getSharedPreferences(context)
+                .getInt(PREF_API_METHOD, 0)];
     }
 
     public static void setApiPeriod(Context context, ApiPeriod apiPeriod) {
@@ -292,7 +293,8 @@ public class LastFmArtSource extends RemoteMuzeiArtSource {
     }
 
     public static ApiPeriod getApiPeriod(Context context) {
-        return ApiPeriod.values()[getSharedPreferences(context).getInt(PREF_API_PERIOD, 1)];
+        return ApiPeriod.values()[getSharedPreferences(context)
+                .getInt(PREF_API_PERIOD, ApiPeriod.values().length-1)];
     }
 
     private static void setCustomVariable(String key, String value) {
